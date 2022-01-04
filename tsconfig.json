@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"module": "System",
+		"alwaysStrict": true,
+		"noImplicitAny": true,
+		"outFile": "./dist.js"
+	},
+	"include": ["./src/**/*"]
+}

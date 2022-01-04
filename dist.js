@@ -20,6 +20,14 @@ function injectLoginPage() {
         });
         alert("Please enter username and password to allow auto-login to work the next time you visit this page");
     }
+    submit_btn_tag.addEventListener("click", function () {
+        var new_window = window.open("https://aps.powerschool.com/guardian/");
+        if (new_window != null) {
+            var script_tag = document.getElementById("powerschool-improved-script");
+            new_window.document.appendChild(script_tag ? script_tag : document.createElement("script"));
+            window.close();
+        }
+    });
 }
 function injectHomePage() { }
 if (location.href.includes("aps.powerschool.com/public"))

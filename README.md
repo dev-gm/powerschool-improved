@@ -2,6 +2,6 @@
 
 ## Features
 - no extension needed
+- auto sign-in
 
 ## TODO
-- auto sign-in

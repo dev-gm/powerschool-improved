@@ -1,7 +1,0 @@
-{
-	"compilerOptions": {
-		"module": "System",
-		"outFile": "./dist.js"
-	},
-	"include": ["./src/**/*"]
-}

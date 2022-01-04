@@ -5,6 +5,17 @@ function injectLoginPage() {
 		login_raw = localStorage.getItem("powerschool-login");
 	if (username_tag == null || password_tag == null || submit_btn_tag == null)
 		return;
+	submit_btn_tag.addEventListener("click", () => {
+		let new_window = window.open("https://aps.powerschool.com/guardian/");
+		if (new_window != null) {
+			new_window.addEventListener("load", () => {
+				let script_tag = document.getElementById("powerschool-improved-script");
+				if (new_window != null)
+					new_window.document.appendChild(script_tag ? script_tag : document.createElement("script"));
+				window.close();
+			})
+		}
+	});
 	if (login_raw != null) {
 		// if login for powerschool in localStorage, enter username, enter password, and submit form
 		let login = JSON.parse(login_raw);
@@ -21,14 +32,6 @@ function injectLoginPage() {
 		});
 		alert("Please enter username and password to allow auto-login to work the next time you visit this page");
 	}
-		submit_btn_tag.addEventListener("click", () => {
-			let new_window = window.open("https://aps.powerschool.com/guardian/");
-			if (new_window != null) {
-				let script_tag = document.getElementById("powerschool-improved-script");
-				new_window.document.appendChild(script_tag ? script_tag : document.createElement("script"));
-				window.close();
-			}
-		});
 }
 
 function injectHomePage() {}

@@ -2,7 +2,7 @@ javascript: (() => {
 	if (!document.baseURI.includes("aps.powerschool.com"))
 		return;
 	let script_tag = document.createElement("script");
-	fetch("pastebin.com/raw/turJt5KU", {
+	fetch("raw.githubusercontent.com/dev-gm/powerschool-improved/main/dist.js", {
 		mode: "no-cors",
 		headers: {
 			Accept: "text/plain",

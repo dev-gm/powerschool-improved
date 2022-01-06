@@ -41,8 +41,8 @@ function injectLoginPage() {
 		// otherwise, have the manually-entered username and password be stored in localStorage for next time user visits page
 		form_tag.addEventListener("submit", () => {
 			localStorage.setItem("powerschool-login", JSON.stringify({
-				username: username_tag ? username_tag.value : "",
-				password: password_tag ? password_tag.value : "",
+				username: username_tag ? username_tag["value"] : "",
+				password: password_tag ? password_tag["value"] : "",
 			}));
 		});
 		alert("Please enter username and password to allow auto-login to work the next time you visit this page");

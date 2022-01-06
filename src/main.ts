@@ -7,12 +7,12 @@ function injectLoginPage() {
 	iframe_tag.setAttribute("name", "powerschool_improved_home");
 	iframe_tag.setAttribute("style", "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999; visibility:hidden");
 	let iframe_first_load = true;
-	/*iframe_tag.addEventListener("load", () => {
-		if (!iframe_first_load)
+	iframe_tag.addEventListener("load", () => {
+		//if (!iframe_first_load)
 			injectLoggedInPage(iframe_tag.contentWindow);
-		else
-			iframe_first_load = false;
-	});*/
+		//else
+			//iframe_first_load = false;
+	});
 	document.body.appendChild(iframe_tag);
 	// if 'back' button is pressed, go back to that state
 	window.addEventListener("popstate", (e) => {

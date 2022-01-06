@@ -54,7 +54,7 @@ function injectLoggedInPage(page_window) {
         innerHTML: page_window.document.documentElement.innerHTML
     }, page_window.document.title, page_window.location.pathname);
     document.title = page_window.document.title;
-    console.log("NON-LOGIN PAGE NOT A FEATURE YET (you can continue using this as normal):\nTITLE = " + document.title);
+    alert("NON-LOGIN PAGE NOT A FEATURE YET (you can continue using this as normal):\nTITLE = " + document.title);
 }
 if (location.href.includes("aps.powerschool.com/public"))
     injectLoginPage();

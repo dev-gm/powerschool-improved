@@ -1,10 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "System",
-		"lib": ["ES2016", "DOM"],
-		"strict": true,
-		"alwaysStrict": true,
-		"noImplicitAny": true,
+		"lib": ["ES2017", "DOM"],
 		"outFile": "./dist.js"
 	},
 	"include": ["./src/**/*"]

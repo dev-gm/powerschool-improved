@@ -1,19 +1,24 @@
-"use strict";
 function injectLoginPage() {
+    var form_tag = document.getElementById("LoginForm");
+    if (form_tag == null)
+        return;
+    // creates an iframe, makes it so that login form, on submission, puts response into iframe instead of current page
+    var iframe_tag = document.createElement("iframe");
+    iframe_tag.setAttribute("name", "powerschool_improved_home");
+    iframe_tag.setAttribute("style", "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;");
+    iframe_tag.addEventListener("load", function () { return injectLoggedInPage(iframe_tag.contentWindow); });
+    window.addEventListener("popstate", function (e) {
+        if (e.state) {
+            iframe_tag.contentWindow.document.write(e.state.innerHTML);
+            document.title = e.state.title;
+        }
+    });
+    document.body.appendChild(iframe_tag);
+    form_tag.setAttribute("target", "powerschool_improved_home");
+    // automatically logs into powerschool
     var username_tag = document.getElementById("fieldAccount"), password_tag = document.getElementById("fieldPassword"), submit_btn_tag = document.getElementById("btn-enter-sign-in"), login_raw = localStorage.getItem("powerschool-login");
     if (username_tag == null || password_tag == null || submit_btn_tag == null)
         return;
-    submit_btn_tag.addEventListener("click", function () {
-        var new_window = window.open("https://aps.powerschool.com/guardian/");
-        if (new_window != null) {
-            new_window.addEventListener("load", function () {
-                var script_tag = document.getElementById("powerschool-improved-script");
-                if (new_window != null)
-                    new_window.document.appendChild(script_tag ? script_tag : document.createElement("script"));
-                window.close();
-            });
-        }
-    });
     if (login_raw != null) {
         // if login for powerschool in localStorage, enter username, enter password, and submit form
         var login = JSON.parse(login_raw);
@@ -23,7 +28,7 @@ function injectLoginPage() {
     }
     else {
         // otherwise, have the manually-entered username and password be stored in localStorage for next time user visits page
-        submit_btn_tag.addEventListener("click", function () {
+        form_tag.addEventListener("submit", function () {
             localStorage.setItem("powerschool-login", JSON.stringify({
                 username: username_tag ? username_tag.getAttribute("value") : "",
                 password: password_tag ? password_tag.getAttribute("value") : ""
@@ -32,8 +37,14 @@ function injectLoginPage() {
         alert("Please enter username and password to allow auto-login to work the next time you visit this page");
     }
 }
-function injectHomePage() { }
+function injectLoggedInPage(page_window) {
+    history.pushState({
+        title: page_window.document.title,
+        innerHTML: page_window.document.documentElement.innerHTML
+    }, page_window.document.title, page_window.location.pathname);
+    document.title = page_window.document.title;
+}
 if (location.href.includes("aps.powerschool.com/public"))
     injectLoginPage();
 else if (location.href.includes("aps.powerschool.com/guardian"))
-    injectHomePage();
+    injectLoggedInPage(window);

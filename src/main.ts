@@ -5,15 +5,24 @@ function injectLoginPage() {
 	// creates an iframe, makes it so that login form, on submission, puts response into iframe instead of current page
 	let iframe_tag = document.createElement("iframe");
 	iframe_tag.setAttribute("name", "powerschool_improved_home");
-	iframe_tag.setAttribute("style", "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;");
-	iframe_tag.addEventListener("load", () => injectLoggedInPage(iframe_tag.contentWindow));
+	iframe_tag.setAttribute("style", "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999; visibility:hidden");
+	let iframe_first_load = true;
+	iframe_tag.addEventListener("load", () => {
+		if (!iframe_first_load)
+			injectLoggedInPage(iframe_tag.contentWindow);
+		else
+			iframe_first_load = false;
+	});
+	document.body.appendChild(iframe_tag);
+	// if 'back' button is pressed, go back to that state
 	window.addEventListener("popstate", (e) => {
 		if (e.state) {
 			iframe_tag.contentWindow.document.write(e.state.innerHTML);
 			document.title = e.state.title;
 		}
 	})
-	document.body.appendChild(iframe_tag);
+	// only set iframe to visible when form is submitted so that form can be clicked on (not covered by iframe)
+	form_tag.addEventListener("submit", () => iframe_tag.style.visibility = "visible");
 	form_tag.setAttribute("target", "powerschool_improved_home");
 	// automatically logs into powerschool
 	let username_tag = document.getElementById("fieldAccount"),
@@ -32,8 +41,8 @@ function injectLoginPage() {
 		// otherwise, have the manually-entered username and password be stored in localStorage for next time user visits page
 		form_tag.addEventListener("submit", () => {
 			localStorage.setItem("powerschool-login", JSON.stringify({
-				username: username_tag ? username_tag.getAttribute("value") : "",
-				password: password_tag ? password_tag.getAttribute("value") : "",
+				username: username_tag ? username_tag.value : "",
+				password: password_tag ? password_tag.value : "",
 			}));
 		});
 		alert("Please enter username and password to allow auto-login to work the next time you visit this page");
@@ -41,11 +50,13 @@ function injectLoginPage() {
 }
 
 function injectLoggedInPage(page_window) {
+	// save current title and html so that it can be returned to when user presses 'back' button
 	history.pushState({
 		title: page_window.document.title,
 		innerHTML: page_window.document.documentElement.innerHTML,
 	}, page_window.document.title, page_window.location.pathname);
 	document.title = page_window.document.title;
+	alert("NON-LOGIN PAGE NOT A FEATURE YET (you can continue using this as normal):\nTITLE = " + document.title);
 }
 
 if (location.href.includes("aps.powerschool.com/public"))

@@ -1,59 +1,144 @@
-function injectLoginPage() {
-	let form_tag = document.getElementById("LoginForm");
-	if (form_tag == null)
-		return;
-	// creates an iframe, makes it so that login form, on submission, puts response into iframe instead of current page
-	let iframe_tag = document.createElement("iframe");
-	iframe_tag.setAttribute("name", "powerschool_improved_home");
-	iframe_tag.setAttribute("style", "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999; visibility:hidden");
-   	iframe_tag.addEventListener("load", () => injectLoggedInPage(iframe_tag.contentWindow));
-	document.body.appendChild(iframe_tag);
-	// if 'back' button is pressed, go back to that state
-	window.addEventListener("popstate", (e) => {
-		if (e.state) {
-			iframe_tag.contentWindow.document.write(e.state.innerHTML);
-			document.title = e.state.title;
-		}
-	})
-	// only set iframe to visible when form is submitted so that form can be clicked on (not covered by iframe)
-	form_tag.addEventListener("submit", () => iframe_tag.style.visibility = "visible");
-	form_tag.setAttribute("target", "powerschool_improved_home");
-	// automatically logs into powerschool
-	let username_tag = document.getElementById("fieldAccount"),
-		password_tag = document.getElementById("fieldPassword"),
-		submit_btn_tag = document.getElementById("btn-enter-sign-in"),
-		login_raw = localStorage.getItem("powerschool-login");
-	if (username_tag == null || password_tag == null || submit_btn_tag == null)
-		return;
-	if (login_raw != null) {
-		// if login for powerschool in localStorage, enter username, enter password, and submit form
-		let login = JSON.parse(login_raw);
-		username_tag.setAttribute("value", login["username"]);
-		password_tag.setAttribute("value", login["password"]);
-		submit_btn_tag.click();
-	} else {
-		// otherwise, have the manually-entered username and password be stored in localStorage for next time user visits page
-		form_tag.addEventListener("submit", () => {
-			localStorage.setItem("powerschool-login", JSON.stringify({
-				username: username_tag ? username_tag["value"] : "",
-				password: password_tag ? password_tag["value"] : "",
-			}));
-		});
-		console.log("Please enter username and password to allow auto-login to work the next time you visit this page");
+const pages: {[path: string]: {title: string, getState: () => Object, template: string, nav: boolean}} = {
+	"login": {title: "Login", getState: () => ({page_order}), template: `
+		<input id="username-input" type="text" />
+		<input id="password-input" type="password" />
+		<a id="submit-btn">SUBMIT</a>
+	`, nav: false},
+	"grades": {title: "Grades", getState: () => ({stuff: "STUFF"}), template: "<b>{stuff}</b>", nav: true},
+};
+
+const scraping_iframe_name = "scraping-iframe";
+const page_order_storage = "powerschool-page-order";
+const login_storage = "powerschool-login";
+
+const nav_contents = "<nav><b>{page_order.0}</b></nav>";
+const head_contents = {
+	getState: () => ({}),
+	template: `<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/android-chrome-192x192.png" sizes="192x192">
+<link rel="icon" type="image/png" href="/android-chrome-512x512.png" sizes="512x512">
+<link rel="icon" type="image/png" href="/favicon-196x196.png" sizes="196x196">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicon-128.png" sizes="128x128">
+<link rel="shortcut icon" href="/favicon.ico">`,
+};
+const global_css_contents = {getState: () => ({}), template: ``};
+
+let page_order = JSON.parse(localStorage.getItem(page_order_storage));
+if (!page_order) {
+	page_order = ["grades", "schedule", "forms"];
+	localStorage.setItem(page_order_storage, JSON.stringify(page_order));
+}
+
+var first_time_switching = true;
+
+async function injectLoginPage() {
+	const login = async (username: string, password: string) => {
+		return fetch("/guardian/home.html", {
+			method: "POST",
+			mode: "same-origin",
+			headers: {
+				"Accept": "text/plain",
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Referer": "https://aps.powerschool.com/public/",
+			},
+			body: new URLSearchParams({account: username, pw: password}).toString(),
+		})
+			.then(res => {
+				if (!res.ok)
+					alert("Username or password incorrect");
+				else
+					switchToPage(page_order[0]);
+				return res.ok;
+			})
+			.catch(err => alert("Failed to log in\n"+err));
+	};
+	let login_data = JSON.parse(localStorage.getItem(login_storage));
+	if (login_data && login_data["username"] && login_data["password"]) {
+		if (await login(login_data["username"], login_data["password"]))
+			return;
+		alert("Stored username/password was incorrect, please enter it now");
+		localStorage.removeItem(login_storage);
 	}
+	switchToPage("login");
+	document.getElementById("submit-btn").addEventListener("click", async () => {
+		let login_data = {};
+		for (const type of ["username", "password"])
+			login_data[type] = document.getElementById(`${type}-input`)["value"];
+		if (await login(login_data["username"], login_data["password"]))
+			localStorage.setItem(login_storage, JSON.stringify(login_data));
+	});
 }
 
-function injectLoggedInPage(page_window) {
-	// save current title and html so that it can be returned to when user presses 'back' button
-	history.pushState({
-		title: page_window.document.title,
-		innerHTML: page_window.document.documentElement.innerHTML,
-	}, page_window.document.title, page_window.location.pathname);
-	document.title = page_window.document.title;
-	console.log("NON-LOGIN PAGE NOT A FEATURE YET (you can continue using this as normal):\nTITLE = " + document.title);
+function injectLoggedInPage(page: string) {
+	if (!Object.keys(pages).includes(page))
+		return;
+	switchToPage(page);
 }
 
-if (location.href.includes("aps.powerschool.com/public"))
-	injectLoginPage();
-else if (location.href.includes("aps.powerschool.com/guardian"))
-	injectLoggedInPage(window);
+function switchToPage(page: string) {
+	document.getElementById("main").innerHTML = processTemplate(
+		nav_contents + pages[page].template,
+		pages[page].getState(),
+	);
+	document.title = pages[page].title;
+	if (!first_time_switching)
+		return history.pushState(page, pages[page].title, '/'+page);
+	document.head.innerHTML = processTemplate(
+		head_contents.template,
+		head_contents.getState(),
+	);
+	history.replaceState(page, pages[page].title, '/'+page);
+	first_time_switching = false;
+}
+
+function processTemplate(template: string, state: Object): string {
+	template = template.replace(/(\r\n|\r|\n|\t)/gm, "");
+	let out = "";
+	let prev = 0;
+	for (
+		let i = template.indexOf('{');
+		i !== -1 && prev < template.length;
+		i = template.indexOf('{', i+1)
+	) {
+		let next = template.indexOf('}', i);
+		if (i > 0 && template[i-1] === '\\' ||
+			next > 0 && template[next-1] === '\\')
+			continue;
+		if (next < 0) {
+			console.log("Failed to parse template: no closing bracket");
+			break;
+		}
+		out += template.substring(prev, i);
+		let temp: any = state;
+		for (const part of template.substring(i+1, next).split('.')) {
+			if (parseInt(part))
+				temp = temp[parseInt(part)];
+			else
+				temp = temp[part];
+		}
+		out += temp;
+		prev = next+1;
+	}
+	if (prev < template.length)
+		out += template.substring(prev);
+	return out;
+}
+
+window.addEventListener("popstate", ({state}) => switchToPage(state));
+
+document.body.innerHTML = `<div id="main">${document.body.innerHTML}</div><style>${processTemplate(
+	global_css_contents.template,
+	global_css_contents.getState(),
+)}</style>`;
+
+if (location.href.includes("aps.powerschool.com")) {
+	if (location.pathname.includes("public"))
+		injectLoginPage();
+	else if (page_order.includes(location.pathname.substring(1)))
+		injectLoggedInPage(location.pathname.substring(1));
+	else
+		injectLoggedInPage(page_order[0]);
+}

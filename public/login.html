@@ -1,0 +1,47 @@
+<link type="text/css" rel="stylesheet" href="/style.css" />
+
+<div id="login-box">
+	<input id="username-input" type="text" placeholder="Enter Username" /><br />
+	<input id="password-input" type="password" placeholder="Enter Password" /><br />
+	<a class="btn" id="submit-btn">SUBMIT</a>
+</div>
+
+<style>
+#login-box {
+	width: 40vw;
+	margin-top: calc((100vh - 70vh) / 2);
+	margin-left: calc((100vw - 40vw) / 2);
+	padding: 14.28vh 0 25vh 0;
+	border: 4px solid black;
+}
+
+#login-box input {
+	font-size: 240%;
+	text-align: center;
+	padding: 0.5vh 0;
+	margin: 1vh calc(10vw / 2);
+	width: calc(40vw - 10vw);
+}
+
+#login-box a {
+	position: absolute;
+	font-size: 260%;
+	padding: 1.2vh 2.5vw 0 2.5vw;
+	margin: 1vh calc(26vw / 2);
+	border: 4px solid black;
+	border-radius: 15px;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#login-box a:hover {
+	background-color: red;
+}
+
+#login-box a:active {
+	background-color: green;
+}
+</style>

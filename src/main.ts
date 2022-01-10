@@ -1,18 +1,22 @@
-const templates: {[path: string]: {title?: string, template: string, getState: () => Object}} = ((filename: string) => {
-	let request = new XMLHttpRequest();
-	request.open("GET", filename, false);
-	request.send(null);
-	if (request.status !== 200) {
-		console.log(`Failed to GET '${filename}'\n${request}`);
-	} else {
-		let out = {};
-		let raw = JSON.parse(request.responseText) as
-			{[path: string]: {title: string, template: string, get_state: string}};
-		for (const [name, {title, template, get_state}] of Object.entries(raw))
-			out[name] = {title, template, getState: () => {let res = eval(get_state); return res ? res : {}}};
-		return out;
-	}
-})("https://raw.githubusercontent.com/dev-gm/powerschool-improved/main/templates.json");
+const templates: {[path: string]: {title?: string, template: string, getState: () => Object}} =
+	((filename: string) => {
+		let request = new XMLHttpRequest();
+		request.open("GET", filename, false);
+		request.send(null);
+		if (request.status !== 200) {
+			console.log(`Failed to GET '${filename}'\n${request}`);
+		} else {
+			let out = {};
+			let raw = JSON.parse(request.responseText) as
+				{[path: string]: {title: string, template: string, getState: string}};
+			for (const [name, {title, template, getState}] of Object.entries(raw))
+				out[name] = {title, template, getState: () => {
+					let res = eval(`(() => {${getState}})()`);
+					return res ? res : {};
+				}};
+			return out;
+		}
+	})("https://raw.githubusercontent.com/dev-gm/powerschool-improved/main/templates.json");
 
 const HEAD_TEMPLATE = "head";
 const CSS_TEMPLATE = "css";
@@ -135,6 +139,9 @@ function processTemplate(name: string): string {
 	}
 	if (prev < template.length)
 		out += template.substring(prev);
+	console.log("STATE: "+Object.entries(state));
+	console.log("TEMPLATE: "+template);
+	console.log("OUT: "+out);
 	return out;
 }
 

@@ -44,12 +44,15 @@ var templates = (function (filename) {
     else {
         var out = {};
         var raw = JSON.parse(request.responseText);
-        var _loop_1 = function (name_1, title, template, get_state) {
-            out[name_1] = { title: title, template: template, getState: function () { var res = eval(get_state); return res ? res : {}; } };
+        var _loop_1 = function (name_1, title, template, getState) {
+            out[name_1] = { title: title, template: template, getState: function () {
+                    var res = eval("(() => {".concat(getState, "})()"));
+                    return res ? res : {};
+                } };
         };
         for (var _i = 0, _a = Object.entries(raw); _i < _a.length; _i++) {
-            var _b = _a[_i], name_1 = _b[0], _c = _b[1], title = _c.title, template = _c.template, get_state = _c.get_state;
-            _loop_1(name_1, title, template, get_state);
+            var _b = _a[_i], name_1 = _b[0], _c = _b[1], title = _c.title, template = _c.template, getState = _c.getState;
+            _loop_1(name_1, title, template, getState);
         }
         return out;
     }
@@ -190,6 +193,9 @@ function processTemplate(name) {
     }
     if (prev < template.length)
         out += template.substring(prev);
+    console.log("STATE: " + Object.entries(state));
+    console.log("TEMPLATE: " + template);
+    console.log("OUT: " + out);
     return out;
 }
 window.addEventListener("popstate", function (_a) {

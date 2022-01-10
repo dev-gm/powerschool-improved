@@ -34,24 +34,43 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var pages = {
-    "login": { title: "Login", getState: function () { return ({ page_order: page_order }); }, template: "\n\t\t<input id=\"username-input\" type=\"text\" />\n\t\t<input id=\"password-input\" type=\"password\" />\n\t\t<a id=\"submit-btn\">SUBMIT</a>\n\t", nav: false },
-    "grades": { title: "Grades", getState: function () { return ({ stuff: "STUFF" }); }, template: "<b>{stuff}</b>", nav: true }
-};
-var scraping_iframe_name = "scraping-iframe";
-var page_order_storage = "powerschool-page-order";
-var login_storage = "powerschool-login";
-var nav_contents = "<nav><b>{page_order.0}</b></nav>";
-var head_contents = {
-    getState: function () { return ({}); },
-    template: "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-192x192.png\" sizes=\"192x192\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-512x512.png\" sizes=\"512x512\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-196x196.png\" sizes=\"196x196\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-96x96.png\" sizes=\"96x96\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-32x32.png\" sizes=\"32x32\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-16x16.png\" sizes=\"16x16\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-128.png\" sizes=\"128x128\">\n<link rel=\"shortcut icon\" href=\"/favicon.ico\">"
-};
-var global_css_contents = { getState: function () { return ({}); }, template: "" };
-var page_order = JSON.parse(localStorage.getItem(page_order_storage));
+var templates = (function (filename) {
+    var request = new XMLHttpRequest();
+    request.open("GET", filename, false);
+    request.send(null);
+    if (request.status !== 200) {
+        console.log("Failed to GET '".concat(filename, "'\n").concat(request));
+    }
+    else {
+        var out = {};
+        var raw = JSON.parse(request.responseText);
+        var _loop_1 = function (name_1, title, template, get_state) {
+            out[name_1] = { title: title, template: template, getState: function () { var res = eval(get_state); return res ? res : {}; } };
+        };
+        for (var _i = 0, _a = Object.entries(raw); _i < _a.length; _i++) {
+            var _b = _a[_i], name_1 = _b[0], _c = _b[1], title = _c.title, template = _c.template, get_state = _c.get_state;
+            _loop_1(name_1, title, template, get_state);
+        }
+        return out;
+    }
+})("https://raw.githubusercontent.com/dev-gm/powerschool-improved/main/templates.json");
+var HEAD_TEMPLATE = "head";
+var CSS_TEMPLATE = "css";
+var NAV_TEMPLATE = "nav";
+var SCRAPING_IFRAME_NAME = "scraping-iframe";
+var PAGE_ORDER_KEY = "powerschool-page-order";
+var LOGIN_DATA_KEY = "powerschool-login";
+var page_order = JSON.parse(localStorage.getItem(PAGE_ORDER_KEY));
 if (!page_order) {
     page_order = ["grades", "schedule", "forms"];
-    localStorage.setItem(page_order_storage, JSON.stringify(page_order));
+    localStorage.setItem(PAGE_ORDER_KEY, JSON.stringify(page_order));
 }
+var is_logged_in = (function () {
+    var request = new XMLHttpRequest();
+    request.open("GET", "/guardian/home.html", false);
+    request.send(null);
+    return request.responseURL.includes("/guardian/home.html");
+})();
 var first_time_switching = true;
 function injectLoginPage() {
     return __awaiter(this, void 0, void 0, function () {
@@ -60,6 +79,8 @@ function injectLoginPage() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    if (is_logged_in)
+                        return [2, switchToPage(page_order[0])];
                     login = function (username, password) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             return [2, fetch("/guardian/home.html", {
@@ -73,22 +94,25 @@ function injectLoginPage() {
                                     body: new URLSearchParams({ account: username, pw: password }).toString()
                                 })
                                     .then(function (res) {
-                                    if (!res.ok)
+                                    if (!res.ok) {
                                         alert("Username or password incorrect");
-                                    else
+                                    }
+                                    else {
+                                        is_logged_in = true;
                                         switchToPage(page_order[0]);
+                                    }
                                     return res.ok;
                                 })["catch"](function (err) { return alert("Failed to log in\n" + err); })];
                         });
                     }); };
-                    login_data = JSON.parse(localStorage.getItem(login_storage));
+                    login_data = JSON.parse(localStorage.getItem(LOGIN_DATA_KEY));
                     if (!(login_data && login_data["username"] && login_data["password"])) return [3, 2];
                     return [4, login(login_data["username"], login_data["password"])];
                 case 1:
                     if (_a.sent())
                         return [2];
                     alert("Stored username/password was incorrect, please enter it now");
-                    localStorage.removeItem(login_storage);
+                    localStorage.removeItem(LOGIN_DATA_KEY);
                     _a.label = 2;
                 case 2:
                     switchToPage("login");
@@ -105,7 +129,7 @@ function injectLoginPage() {
                                     return [4, login(login_data["username"], login_data["password"])];
                                 case 1:
                                     if (_b.sent())
-                                        localStorage.setItem(login_storage, JSON.stringify(login_data));
+                                        localStorage.setItem(LOGIN_DATA_KEY, JSON.stringify(login_data));
                                     return [2];
                             }
                         });
@@ -116,21 +140,31 @@ function injectLoginPage() {
     });
 }
 function injectLoggedInPage(page) {
-    if (!Object.keys(pages).includes(page))
-        return;
-    switchToPage(page);
+    if (page_order.includes(page) && is_logged_in)
+        switchToPage(page);
+    else if (!page_order.includes(page))
+        switchToPage(page_order[0]);
+    else
+        injectLoginPage();
 }
 function switchToPage(page) {
-    document.getElementById("main").innerHTML = processTemplate(nav_contents + pages[page].template, pages[page].getState());
-    document.title = pages[page].title;
+    if (!templates[page] || templates[page].title === null)
+        return;
+    if (is_logged_in && page === "login")
+        return switchToPage("login");
+    if (!is_logged_in && page !== "login")
+        return switchToPage(page_order[0]);
+    document.getElementById("main").innerHTML = processTemplate(page);
+    document.title = templates[page].title;
     if (!first_time_switching)
-        return history.pushState(page, pages[page].title, '/' + page);
-    document.head.innerHTML = processTemplate(head_contents.template, head_contents.getState());
-    history.replaceState(page, pages[page].title, '/' + page);
+        return history.pushState(page, templates[page].title, '/' + page);
+    document.head.innerHTML = processTemplate("head");
+    history.replaceState(page, templates[page].title, '/' + page);
     first_time_switching = false;
 }
-function processTemplate(template, state) {
-    template = template.replace(/(\r\n|\r|\n|\t)/gm, "");
+function processTemplate(name) {
+    var template = templates[name].template.replace(/(\r\n|\r|\n|\t)/gm, "");
+    var state = templates[name].getState();
     var out = "";
     var prev = 0;
     for (var i = template.indexOf('{'); i !== -1 && prev < template.length; i = template.indexOf('{', i + 1)) {
@@ -162,12 +196,16 @@ window.addEventListener("popstate", function (_a) {
     var state = _a.state;
     return switchToPage(state);
 });
-document.body.innerHTML = "<div id=\"main\">".concat(document.body.innerHTML, "</div><style>").concat(processTemplate(global_css_contents.template, global_css_contents.getState()), "</style>");
+document.body.innerHTML =
+    "<div id=\"main\">".concat(document.body.innerHTML, "</div><style>").concat(processTemplate(CSS_TEMPLATE), "</style>");
 if (location.href.includes("aps.powerschool.com")) {
-    if (location.pathname.includes("public"))
+    if (!is_logged_in)
         injectLoginPage();
     else if (page_order.includes(location.pathname.substring(1)))
         injectLoggedInPage(location.pathname.substring(1));
     else
         injectLoggedInPage(page_order[0]);
+}
+else {
+    alert("You must be on powerschool to use this");
 }

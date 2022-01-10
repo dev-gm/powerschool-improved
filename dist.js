@@ -44,7 +44,7 @@ var login_storage = "powerschool-login";
 var nav_contents = "<nav><b>{page_order.0}</b></nav>";
 var head_contents = {
     getState: function () { return ({}); },
-    template: "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-192x192.png\" sizes=\"192x192\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-512x512.png\" sizes=\"512x512\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-196x196.png\" sizes=\"196x196\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-96x96.png\" sizes=\"96x96\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-32x32.png\" sizes=\"32x32\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-16x16.png\" sizes=\"16x16\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-128.png\" sizes=\"128x128\">\n<link rel=\"shortcut icon\" href=\"/favicon.ico\">".replace(/(\r\n|\r|\n|\t)/gm, "")
+    template: "<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-192x192.png\" sizes=\"192x192\">\n<link rel=\"icon\" type=\"image/png\" href=\"/android-chrome-512x512.png\" sizes=\"512x512\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-196x196.png\" sizes=\"196x196\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-96x96.png\" sizes=\"96x96\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-32x32.png\" sizes=\"32x32\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-16x16.png\" sizes=\"16x16\">\n<link rel=\"icon\" type=\"image/png\" href=\"/favicon-128.png\" sizes=\"128x128\">\n<link rel=\"shortcut icon\" href=\"/favicon.ico\">"
 };
 var global_css_contents = { getState: function () { return ({}); }, template: "" };
 var page_order = JSON.parse(localStorage.getItem(page_order_storage));
@@ -116,7 +116,7 @@ function injectLoginPage() {
     });
 }
 function injectLoggedInPage(page) {
-    if (!pages[page])
+    if (!Object.keys(pages).includes(page))
         return;
     switchToPage(page);
 }

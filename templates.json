@@ -3,20 +3,20 @@
 		"title": null,
 		"template": "<link rel='apple-touch-icon' href='/apple-touch-icon.png'><link rel='icon' type='image/png' href='/android-chrome-192x192.png' sizes='192x192'><link rel='icon' type='image/png' href='/android-chrome-512x512.png' sizes='512x512'><link rel='icon' type='image/png' href='/favicon-196x196.png' sizes='196x196'><link rel='icon' type='image/png' href='/favicon-96x96.png' sizes='96x96'><link rel='icon' type='image/png' href='/favicon-32x32.png' sizes='32x32'><link rel='icon' type='image/png' href='/favicon-16x16.png' sizes='16x16'><link rel='icon' type='image/png' href='/favicon-128.png' sizes='128x128'><link rel='shortcut icon' href='/favicon.ico'>",
 			"getState": ""
-		},
-		"css": {
-			"title": null,
-			"template": "",
-			"getState": "",
-		"login": {
-			"title": "Login",
-			"template": "{test1}<input id='username-input' type='username' /><input id='password-input' type='password' /><button id='submit-btn'>{test2}</button>",
-			"getState": "{test1: 'test', test2: 'SUBMIT'}"
-		},
-		"grades": {
-			"title": "Grades",
-			"template": "{logged_in}<br />TEST",
-			"getState": "{logged_in: 'TRUE'}"
-		}
+	},
+	"css": {
+		"title": null,
+		"template": "",
+		"getState": ""
+	},
+	"login": {
+		"title": "Login",
+		"template": "{test1}<input id='username-input' type='username' /><input id='password-input' type='password' /><button id='submit-btn'>{test2}</button>",
+		"getState": "{test1: 'test', test2: 'SUBMIT'}"
+	},
+	"grades": {
+		"title": "Grades",
+		"template": "{logged_in}<br />TEST",
+		"getState": "{logged_in: 'TRUE'}"
 	}
 }
